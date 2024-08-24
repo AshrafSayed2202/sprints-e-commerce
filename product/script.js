@@ -6,7 +6,7 @@ const url = `https://apidojo-hm-hennes-mauritz-v1.p.rapidapi.com/products/detail
 const options = {
     method: "GET",
     headers: {
-        "x-rapidapi-key": "1593260f82mshdcb446d9db461a0p1b63f3jsnce857f8b03e0",
+        "x-rapidapi-key": "042bb0e6d0msh99500dc4f7b05b0p1fe784jsnd729b3dfb35d",
         "x-rapidapi-host": "apidojo-hm-hennes-mauritz-v1.p.rapidapi.com",
     },
 };
