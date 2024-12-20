@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Register Page</title>
+        <link rel="stylesheet" href="../assets/styles/auth.css" />
+    </head>
+    <body>
+        <div class="form-container register-container">
+            <h2>Register</h2>
+            <form id="registerForm">
+                <input
+                    type="text"
+                    id="registerUsername"
+                    placeholder="Username"
+                    required
+                />
+                <input
+                    type="email"
+                    id="registerEmail"
+                    placeholder="Email"
+                    required
+                />
+                <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Password"
+                    required
+                />
+                <label> <input type="checkbox" id="isAdmin" /> Admin </label>
+                <button type="submit">Register</button>
+            </form>
+            <p>Already have an account? <a href="/login">Login here</a></p>
+        </div>
+
+        <script>
+            document
+                .getElementById("registerForm")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    const username =
+                        document.getElementById("registerUsername").value;
+                    const email =
+                        document.getElementById("registerEmail").value;
+                    const password =
+                        document.getElementById("registerPassword").value;
+                    const isAdmin = document.getElementById("isAdmin").checked;
+
+                    // Validate username (only letters and numbers)
+                    const usernameRegex = /^[a-zA-Z0-9]+$/;
+                    if (!username || !usernameRegex.test(username)) {
+                        alert(
+                            "Username must only contain letters and numbers."
+                        );
+                        return;
+                    }
+
+                    // Validate email format
+                    const emailRegex =
+                        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!email || !emailRegex.test(email)) {
+                        alert("Please enter a valid email address.");
+                        return;
+                    }
+
+                    // Validate password (minimum 6 characters)
+                    if (password.length < 6) {
+                        alert("Password must be at least 6 characters long.");
+                        return;
+                    }
+
+                    // Get existing users from localStorage
+                    const users =
+                        JSON.parse(localStorage.getItem("users")) || [];
+
+                    // Add new user to users array
+                    const newUser = { username, email, password, isAdmin };
+                    users.push(newUser);
+
+                    // Save updated users array to localStorage
+                    localStorage.setItem("users", JSON.stringify(users));
+
+                    // Redirect to login page after successful registration
+                    alert("Registration successful!");
+                    window.location.href = "/login";
+                });
+        </script>
+    </body>
+</html>

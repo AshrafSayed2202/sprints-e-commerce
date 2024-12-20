@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login Page</title>
+        <link rel="stylesheet" href="../assets/styles/auth.css" />
+    </head>
+    <body>
+        <div class="form-container login-container">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input
+                    type="text"
+                    id="loginUsername"
+                    placeholder="Username"
+                    required
+                />
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Password"
+                    required
+                />
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="/register">Register here</a></p>
+        </div>
+
+        <script>
+            // Add event listener to the login form
+            document
+                .getElementById("loginForm")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    const username =
+                        document.getElementById("loginUsername").value;
+                    const password =
+                        document.getElementById("loginPassword").value;
+
+                    // Validation for username and password
+                    if (!username || !password) {
+                        alert("Both username and password are required.");
+                        return;
+                    }
+
+                    const users =
+                        JSON.parse(localStorage.getItem("users")) || [];
+                    const user = users.find(
+                        (u) =>
+                            u.username === username && u.password === password
+                    );
+
+                    if (user) {
+                        // Save the current user in localStorage
+                        localStorage.setItem(
+                            "currentUser",
+                            JSON.stringify(user)
+                        );
+                        window.location.href = "/"; // Redirect to dashboard or home
+                    } else {
+                        alert("Invalid username or password.");
+                    }
+                });
+        </script>
+    </body>
+</html>

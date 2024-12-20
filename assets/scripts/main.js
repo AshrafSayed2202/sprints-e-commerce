@@ -1,3 +1,16 @@
+// User Check
+function checkUserAndRedirect() {
+  const currentUser = localStorage.getItem('currentUser');
+  if (!currentUser) {
+    window.location.href = '/login';
+  }
+}
+// Logout
+function logout() {
+  localStorage.removeItem('currentUser');
+  window.location.href = '/login';
+}
+checkUserAndRedirect()
 // Cart Count
 const cart = JSON.parse(localStorage.getItem("cart")) || [];
 const cartCount = document.getElementById("cart-count");
