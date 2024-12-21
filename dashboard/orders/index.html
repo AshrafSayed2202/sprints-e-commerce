@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Orders Dashboard</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f9;
+                color: #333;
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                width: 80%;
+                margin: 30px auto;
+            }
+
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+
+            .order-card {
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                margin: 15px 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .order-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+            }
+
+            .order-header h2 {
+                margin: 0;
+                font-size: 18px;
+                color: #555;
+            }
+
+            .order-header span {
+                font-size: 14px;
+                color: #777;
+            }
+
+            .order-details {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .order-items {
+                width: 60%;
+                padding-right: 20px;
+            }
+
+            .order-summary {
+                width: 35%;
+            }
+
+            .item {
+                display: flex;
+                margin-bottom: 15px;
+            }
+
+            .item img {
+                width: 80px;
+                height: 80px;
+                object-fit: cover;
+                margin-right: 10px;
+                border-radius: 8px;
+            }
+
+            .item-details {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            .order-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+            .btn-shipped {
+                background-color: #4caf50;
+                color: white;
+            }
+
+            .btn-delivered {
+                background-color: #2196f3;
+                color: white;
+            }
+
+            .btn-disabled {
+                background-color: #ccc;
+                color: #777;
+                cursor: not-allowed;
+            }
+
+            .order-summary p {
+                margin: 5px 0;
+            }
+            .order-item-color {
+                width: 20px;
+                height: 20px;
+                display: inline-block;
+                border: 1px solid #11111163;
+                margin-right: 7px;
+            }
+            #backBtn {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <span id="backBtn">
+            <a href="/dashboard/">Back</a>
+        </span>
+        <div class="container">
+            <h1>Orders Dashboard</h1>
+            <div id="orders-container"></div>
+        </div>
+
+        <script>
+            const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            if (!currentUser || !currentUser.isAdmin) {
+                alert(
+                    "Access denied. Only admins can access the Product Management page."
+                );
+                window.location.href = "/";
+            }
+            // Sample orders data (would be replaced by localStorage)
+            const orders = JSON.parse(localStorage.getItem("orders")) || [];
+            // Function to render orders
+            function renderOrders() {
+                const ordersContainer =
+                    document.getElementById("orders-container");
+                ordersContainer.innerHTML = "";
+
+                orders.forEach((order, index) => {
+                    const orderCard = document.createElement("div");
+                    orderCard.classList.add("order-card");
+
+                    const orderHeader = document.createElement("div");
+                    orderHeader.classList.add("order-header");
+                    orderHeader.innerHTML = `
+                <h2>Order #${index + 1}</h2>
+                <span>Order Date: ${new Date(
+                    order.orderDate
+                ).toLocaleDateString()}</span>
+            `;
+                    orderCard.appendChild(orderHeader);
+
+                    const orderDetails = document.createElement("div");
+                    orderDetails.classList.add("order-details");
+
+                    // Order Items Section
+                    const orderItems = document.createElement("div");
+                    orderItems.classList.add("order-items");
+                    order.cartItems.forEach((item) => {
+                        const itemElement = document.createElement("div");
+                        itemElement.classList.add("item");
+                        itemElement.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="item-details">
+                        <span><strong>${item.name}</strong> (x${item.quantity})</span>
+                        <span>Size: ${item.size}, Color: <span class="order-item-color" style="background: #${item.color};"></span></span>
+                        <span>Price: $${item.price}</span>
+                    </div>
+                `;
+                        orderItems.appendChild(itemElement);
+                    });
+
+                    // Order Summary Section
+                    const orderSummary = document.createElement("div");
+                    orderSummary.classList.add("order-summary");
+                    orderSummary.innerHTML = `
+                <p><strong>Shipping Address:</strong> ${order.shippingAddress.firstName} ${order.shippingAddress.lastName}</p>
+                <p><strong>Country:</strong> ${order.shippingAddress.country}</p>
+                <p><strong>Total:</strong> $${order.total}</p>
+            `;
+
+                    // Add both items and summary to order card
+                    orderDetails.appendChild(orderItems);
+                    orderDetails.appendChild(orderSummary);
+                    orderCard.appendChild(orderDetails);
+
+                    // Order Actions Section (Shipped / Delivered)
+                    const orderActions = document.createElement("div");
+                    orderActions.classList.add("order-actions");
+
+                    const shippedButton = document.createElement("button");
+                    shippedButton.classList.add("btn", "btn-shipped");
+                    shippedButton.innerText = "Mark as Shipped";
+                    shippedButton.onclick = () =>
+                        updateOrderStatus(index, "shipped");
+
+                    const deliveredButton = document.createElement("button");
+                    deliveredButton.classList.add("btn", "btn-delivered");
+                    deliveredButton.innerText = "Mark as Delivered";
+                    deliveredButton.onclick = () =>
+                        updateOrderStatus(index, "delivered");
+
+                    // Disable buttons if the order is already shipped or delivered
+                    if (order.status === "shipped") {
+                        shippedButton.classList.add("btn-disabled");
+                        deliveredButton.classList.remove("btn-disabled");
+                    } else if (order.status === "delivered") {
+                        shippedButton.classList.add("btn-disabled");
+                        deliveredButton.classList.add("btn-disabled");
+                    }
+
+                    orderActions.appendChild(shippedButton);
+                    orderActions.appendChild(deliveredButton);
+
+                    orderCard.appendChild(orderActions);
+
+                    // Add the order card to the container
+                    ordersContainer.appendChild(orderCard);
+                });
+            }
+
+            // Function to update order status
+            function updateOrderStatus(index, status) {
+                orders[index].status = status;
+                localStorage.setItem("orders", JSON.stringify(orders)); // Save to localStorage
+                renderOrders(); // Re-render the orders
+            }
+
+            // Initial render
+            renderOrders();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Product Management</title>
+        <link rel="stylesheet" href="../../assets/styles/auth.css" />
+        <style>
+            /* Basic styles for better layout */
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }
+            .container {
+                max-width: 800px;
+                margin: auto;
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .filter-section,
+            .product-form-container {
+                margin-bottom: 20px;
+            }
+            .product-item {
+                border: 1px solid #ddd;
+                padding: 10px;
+                margin-bottom: 10px;
+                border-radius: 5px;
+            }
+            button {
+                margin-top: 10px;
+            }
+            #backBtn {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+            }
+            .color-box {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                margin-right: 10px;
+                border-radius: 50%;
+            }
+            div.actions {
+                display: flex;
+                width: 100%;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+            span {
+                cursor: pointer;
+            }
+            span:hover {
+                scale: 1.1;
+            }
+            span img {
+                width: 40px;
+                height: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <span id="backBtn">
+                <a href="../">Back</a>
+            </span>
+            <h1>Product Management</h1>
+            <!-- Search and Filter Section -->
+            <div class="filter-section">
+                <input
+                    type="text"
+                    id="searchName"
+                    placeholder="Search by name..."
+                    oninput="filterProducts()"
+                    aria-label="Search by name"
+                />
+                <input
+                    type="text"
+                    id="searchCategory"
+                    placeholder="Search by category..."
+                    oninput="filterProducts()"
+                    aria-label="Search by category"
+                />
+                <input
+                    type="number"
+                    id="minPrice"
+                    placeholder="Min price"
+                    oninput="filterProducts()"
+                    aria-label="Minimum price"
+                />
+                <input
+                    type="number"
+                    id="maxPrice"
+                    placeholder="Max price"
+                    oninput="filterProducts()"
+                    aria-label="Maximum price"
+                />
+            </div>
+
+            <!-- Product List -->
+            <div class="product-list" id="productList"></div>
+
+            <!-- Add/Edit Product Form -->
+            <div
+                class="product-form-container"
+                id="productFormContainer"
+                style="display: none"
+            >
+                <h2 id="formTitle">Add New Product</h2>
+                <form id="productForm">
+                    <input
+                        type="text"
+                        id="productId"
+                        placeholder="Product ID"
+                        disabled
+                    />
+                    <input
+                        type="text"
+                        id="productName"
+                        placeholder="Product Name"
+                        required
+                        aria-label="Product Name"
+                    />
+                    <input
+                        type="number"
+                        id="productPrice"
+                        placeholder="Price"
+                        required
+                        aria-label="Price"
+                    />
+                    <textarea
+                        id="productDescription"
+                        placeholder="Description"
+                        aria-label="Description"
+                    ></textarea>
+                    <input
+                        type="number"
+                        id="productDiscount"
+                        placeholder="Discount"
+                        aria-label="Discount"
+                    />
+                    <input
+                        type="text"
+                        id="productColors"
+                        placeholder="Colors (comma separated)"
+                        aria-label="Colors"
+                    />
+                    <input
+                        type="text"
+                        id="productSizes"
+                        placeholder="Sizes (comma separated)"
+                        aria-label="Sizes"
+                    />
+                    <input
+                        type="text"
+                        id="productCategory"
+                        placeholder="Category"
+                        required
+                        aria-label="Category"
+                    />
+                    <button type="submit" id="submitBtn">Add Product</button>
+                </form>
+            </div>
+            <button id="addProductBtn" onclick="showAddProductForm()">
+                Add New Product
+            </button>
+        </div>
+
+        <script>
+            // Check if user is an admin
+            const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            if (!currentUser || !currentUser.isAdmin) {
+                alert(
+                    "Access denied. Only admins can access the Product Management page."
+                );
+                window.location.href = "/";
+            }
+
+            // Get the product list from localStorage or initialize it as an empty array
+            let products = JSON.parse(localStorage.getItem("products")) || [];
+
+            // Function to display products
+            function displayProducts() {
+                const productList = document.getElementById("productList");
+                productList.innerHTML = ""; // Clear the product list
+
+                products.forEach((product, index) => {
+                    const productElement = document.createElement("div");
+                    productElement.classList.add("product-item");
+                    productElement.innerHTML = `
+                        <p><strong>${product.name}</strong> (${
+                        product.category
+                    })</p>
+                        <p>Price: $${product.price.toFixed(2)}</p>
+                        <p>Description: ${product.description}</p>
+                        <p>Discount: ${product.discount || 0}%</p>
+                        <p>Colors: ${product.colors
+                            .map(
+                                (color) =>
+                                    `<span
+                                class="color-box"
+                                style="background-color: #${color}"
+                            ></span>`
+                            )
+                            .join("")}</p>
+                        <p>Sizes: ${product.sizes.join(", ")}</p>
+                        <div class="actions">
+                            <span onclick="editProduct(${index})"><img src="../../assets/images/edit.png"></span>
+                            <span onclick="deleteProduct(${index})"><img src="../../assets/images/delete.png"></span>
+                        </div>
+                    `;
+                    productList.appendChild(productElement);
+                });
+            }
+
+            // Function to show the Add Product form
+            // Function to show the Add Product form
+            function showAddProductForm() {
+                const formContainer = document.getElementById(
+                    "productFormContainer"
+                );
+                const addProductBtn = document.getElementById("addProductBtn");
+
+                // Toggle between Add and Cancel button actions
+                if (
+                    formContainer.style.display === "none" ||
+                    formContainer.style.display === ""
+                ) {
+                    formContainer.style.display = "block";
+                    document.getElementById("formTitle").innerText =
+                        "Add New Product";
+                    document.getElementById("productForm").reset();
+                    document.getElementById("submitBtn").innerText =
+                        "Add Product";
+                    addProductBtn.innerText = "Cancel"; // Change button text to Cancel
+                } else {
+                    formContainer.style.display = "none";
+                    addProductBtn.innerText = "Add New Product"; // Reset the button text back to Add New Product
+                }
+            }
+
+            // Function to handle Add/Edit Product
+            document
+                .getElementById("productForm")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    const id =
+                        document.getElementById("productId").value ||
+                        generateProductId();
+                    const name = document
+                        .getElementById("productName")
+                        .value.trim();
+                    const price = parseFloat(
+                        document.getElementById("productPrice").value
+                    );
+                    const description = document
+                        .getElementById("productDescription")
+                        .value.trim();
+                    const discount =
+                        parseInt(
+                            document.getElementById("productDiscount").value
+                        ) || 0;
+                    const colors = document
+                        .getElementById("productColors")
+                        .value.split(",")
+                        .map((color) => color.trim());
+                    const sizes = document
+                        .getElementById("productSizes")
+                        .value.split(",")
+                        .map((size) => size.trim());
+                    const category = document
+                        .getElementById("productCategory")
+                        .value.trim();
+
+                    // Validate inputs
+                    if (!name || !category || isNaN(price) || price < 0) {
+                        alert("Please fill in all required fields correctly.");
+                        return;
+                    }
+
+                    // Create new product object
+                    const product = {
+                        id,
+                        name,
+                        price,
+                        description,
+                        discount,
+                        colors,
+                        sizes,
+                        category,
+                    };
+
+                    // Add or update the product in the products array
+                    if (products.some((p) => p.id === id)) {
+                        products = products.map((p) =>
+                            p.id === id ? product : p
+                        ); // Update existing product
+                    } else {
+                        products.push(product); // Add new product
+                    }
+
+                    // Save the updated products array to localStorage
+                    localStorage.setItem("products", JSON.stringify(products));
+
+                    // Hide the form and refresh the product list
+                    document.getElementById(
+                        "productFormContainer"
+                    ).style.display = "none";
+                    document.getElementById("addProductBtn").innerText =
+                        "Add New Product"; // Reset button text back to "Add New Product"
+                    displayProducts();
+                });
+
+            // Function to generate a unique product ID
+            function generateProductId() {
+                return `prod-${Date.now()}`;
+            }
+
+            // Function to edit a product
+            function editProduct(index) {
+                const product = products[index];
+                document.getElementById("productId").value = product.id;
+                document.getElementById("productName").value = product.name;
+                document.getElementById("productPrice").value = product.price;
+                document.getElementById("productDescription").value =
+                    product.description;
+                document.getElementById("productDiscount").value =
+                    product.discount;
+                document.getElementById("productColors").value =
+                    product.colors.join(", ");
+                document.getElementById("productSizes").value =
+                    product.sizes.join(", ");
+                document.getElementById("productCategory").value =
+                    product.category;
+                document.getElementById("productFormContainer").style.display =
+                    "block";
+                document.getElementById("formTitle").innerText = "Edit Product";
+                document.getElementById("submitBtn").innerText = "Save Changes";
+            }
+
+            // Function to delete a product
+            function deleteProduct(index) {
+                if (confirm("Are you sure you want to delete this product?")) {
+                    products.splice(index, 1);
+                    localStorage.setItem("products", JSON.stringify(products));
+                    displayProducts();
+                }
+            }
+
+            // Function to filter products based on search inputs
+            function filterProducts() {
+                const searchName = document
+                    .getElementById("searchName")
+                    .value.toLowerCase();
+                const searchCategory = document
+                    .getElementById("searchCategory")
+                    .value.toLowerCase();
+                const minPrice =
+                    parseFloat(document.getElementById("minPrice").value) || 0;
+                const maxPrice =
+                    parseFloat(document.getElementById("maxPrice").value) ||
+                    Infinity;
+
+                const filteredProducts = products.filter((product) => {
+                    return (
+                        product.name.toLowerCase().includes(searchName) &&
+                        product.category
+                            .toLowerCase()
+                            .includes(searchCategory) &&
+                        product.price >= minPrice &&
+                        product.price <= maxPrice
+                    );
+                });
+
+                // Display filtered products
+                const productList = document.getElementById("productList");
+                productList.innerHTML = "";
+                filteredProducts.forEach((product, index) => {
+                    const productElement = document.createElement("div");
+                    productElement.classList.add("product-item");
+                    productElement.innerHTML = `
+                        <p><strong>${product.name}</strong> (${
+                        product.category
+                    })</p>
+                        <p>Price: $${product.price.toFixed(2)}</p>
+                        <p>Description: ${product.description}</p>
+                        <p>Discount: ${product.discount || 0}%</p>
+                        <p>Colors: ${product.colors
+                            .map(
+                                (color) =>
+                                    `<span
+                                class="color-box"
+                                style="background-color: #${color}"
+                            ></span>`
+                            )
+                            .join("")}</p>
+                        <p>Sizes: ${product.sizes.join(", ")}</p>
+                        <button onclick="editProduct(${index})"><img src="../../assets/images/edit.png"></button>
+                        <button onclick="deleteProduct(${index})"><img src="../../assets/images/delete.png"></button>
+                    `;
+                    productList.appendChild(productElement);
+                });
+            }
+            // Display products initially
+            displayProducts();
+        </script>
+    </body>
+</html>

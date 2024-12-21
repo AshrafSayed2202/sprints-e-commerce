@@ -1565,3 +1565,65 @@ footer {
     font-size: 12px;
     margin-top: 5px;
 }
+
+.order-info,
+.order-items,
+.shipping-address,
+.payment-details,
+.order-summary {
+    margin-bottom: 30px;
+}
+
+.order-info p,
+.shipping-address p,
+.payment-details p {
+    font-size: 16px;
+    color: #555;
+}
+
+.order-items .order-item {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.order-items .item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 20px;
+}
+
+.order-items .item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-items .item-details p {
+    margin: 5px 0;
+}
+
+.order-summary p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.action-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.status-btn {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.status-btn:hover {
+    background-color: #444;
+}
