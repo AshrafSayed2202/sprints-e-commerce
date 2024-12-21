@@ -46,7 +46,7 @@ const draw = (cartItems) => {
                         >
                         <p
                             class="prod-card-color prodColor"
-                            style="background-color: ${item.color}"
+                            style="background-color: #${item.color}"
                         ></p>
                         <div class="btn-group-increment">
                             <button type="button" class="btnLight" onclick ="increaseQuantityProd(${item.quantity}, ${i})">+</button>

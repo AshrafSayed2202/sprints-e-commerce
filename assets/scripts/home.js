@@ -1,21 +1,18 @@
-const baseUrl = 'https://apidojo-hm-hennes-mauritz-v1.p.rapidapi.com/products/list';
-const url = `${baseUrl}?country=us&lang=en&currentpage=0&pagesize=12&productTypes=T-shirt`;
-const collectionUrl = `${baseUrl}?country=us&lang=en&currentpage=0&pagesize=30`;
 const productListing = document.getElementById("T-shirts-container");
 const collectionListing = document.getElementById("home-collection");
-const options = {
-    method: "GET",
-    headers: {
-        "x-rapidapi-key": "042bb0e6d0msh99500dc4f7b05b0p1fe784jsnd729b3dfb35d",
-        "x-rapidapi-host": "apidojo-hm-hennes-mauritz-v1.p.rapidapi.com",
-    },
-};
 
 const getProducts = async () => {
     try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-        displayProducts(data.results, productListing);
+        const products = await new Promise((resolve, reject) => {
+            const storedProducts = localStorage.getItem('products');
+            if (storedProducts) {
+                resolve(JSON.parse(storedProducts));
+            } else {
+                reject('No products found in localStorage');
+            }
+        });
+
+        displayProducts(products, productListing);
     } catch (error) {
         console.error(error);
     }
@@ -25,9 +22,24 @@ let collectionCards;
 
 const getCollection = async () => {
     try {
-        const response = await fetch(collectionUrl, options);
-        const data = await response.json();
-        displayProducts(data.results, collectionListing);
+        const collectionData = await new Promise((resolve, reject) => {
+            const storedCollection = localStorage.getItem('products');
+            if (storedCollection) {
+                try {
+                    const parsedData = JSON.parse(storedCollection);
+                    if (parsedData && Array.isArray(parsedData)) {
+                        resolve(parsedData);
+                    } else {
+                        reject('No results array found in stored collection data');
+                    }
+                } catch (error) {
+                    reject('Error parsing stored collection data');
+                }
+            } else {
+                reject('No collection found in localStorage');
+            }
+        });
+        displayProducts(collectionData, collectionListing);
         collectionCards = document.querySelectorAll('#home-collection .product-card');
         for (let r = 3; r < collectionCards.length; r++) {
             collectionCards[r].style.display = 'none';
@@ -39,13 +51,13 @@ const getCollection = async () => {
 
 const displayProducts = (products, listing) => {
     listing.innerHTML = products.map(prod => `
-        <div class="product-card" onclick="window.location.href='./product/?id=${prod.articles[0].code}'" data-categ="${prod.categoryName}">
-            <img src="${prod.images[0].url}" alt="${prod.name}">
+        <div class="product-card" onclick="window.location.href='./product/?id=${prod.id}'" data-categ="${prod.category}">
+            <img src="/assets/images/one.jfif" alt="${prod.name}" class="product-image">
             <div class="product-info">
-                <span>Category: ${prod.categoryName} ${prod.rgbColors ? `<span class="prod-card-color" style="background-color:${prod.rgbColors[0]}"></span>${prod.rgbColors.length > 1 ? `+${prod.rgbColors.length}` : ""}` : ""}</span>
+                <span>Category: ${prod.category} ${prod.colors ? `<span class="prod-card-color" style="background-color:${prod.colors[0]}"></span>${prod.colors.length > 1 ? `+${prod.colors.length}` : ""}` : ""}</span>
                 <div class="card-text">
                     <h4>${prod.name}</h4>
-                    <p>${prod.price.formattedValue}</p>
+                    <p>${prod.price}$</p>
                 </div>
             </div>
         </div>

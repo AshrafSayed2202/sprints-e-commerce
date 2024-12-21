@@ -3,35 +3,33 @@ let filteredProducts = [];
 let selectedCategories =
   JSON.parse(localStorage.getItem("selectedCategories")) || [];
 let selectedSortOrder = localStorage.getItem("selectedSortOrder") || "default";
-
-const urlParams = new URLSearchParams(window.location.search);
-const pageNum = urlParams.get("page") || 0;
-const ProductsType = urlParams.get("type");
-const baseUrl =
-  "https://apidojo-hm-hennes-mauritz-v1.p.rapidapi.com/products/list";
-const url = `${baseUrl}?country=us&lang=en&currentpage=${pageNum}&pagesize=30${ProductsType ? `&productTypes=${ProductsType}` : ""
-  }`;
-
-const options = {
-  method: "GET",
-  headers: {
-    "x-rapidapi-key": "042bb0e6d0msh99500dc4f7b05b0p1fe784jsnd729b3dfb35d",
-    "x-rapidapi-host": "apidojo-hm-hennes-mauritz-v1.p.rapidapi.com",
-  },
-};
-
 const getProducts = async () => {
   try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    allProducts = data.results;
+    const productsData = await new Promise((resolve, reject) => {
+      const storedData = localStorage.getItem('products');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          if (parsedData && Array.isArray(parsedData)) {
+            resolve(parsedData);
+          } else {
+            reject('No valid "results" array found in stored data');
+          }
+        } catch (error) {
+          reject('Error parsing stored products data');
+        }
+      } else {
+        reject('No products found in localStorage');
+      }
+    });
+    allProducts = productsData;
     applyFiltersAndSorting();
-    displayFilters(data.results);
-    displayPagination(data.pagination);
+    displayFilters(productsData);
   } catch (error) {
     console.error(error);
   }
 };
+
 
 const applyFiltersAndSorting = () => {
   filteredProducts = [...allProducts];
@@ -62,19 +60,13 @@ const displayProducts = (products) => {
   productListing.innerHTML = products
     .map(
       (prod) => `
-        <div class="product-card" onclick="window.location.href='../product/?id=${prod.articles[0].code
-        }'">
-            <img src="${prod.images[0].url}" alt="${prod.name}">
+        <div class="product-card" onclick="window.location.href='../product/?id=${prod.id}'">
+            <img src="/assets/images/one.jfif" alt="${prod.name}">
             <div class="product-info">
-                <span>Category: ${prod.categoryName} ${prod.rgbColors
-          ? `<span class="prod-card-color" style="background-color:${prod.rgbColors[0]
-          }"></span>${prod.rgbColors.length > 1 ? `+${prod.rgbColors.length}` : ""
-          }`
-          : ""
-        }</span>
+                <span>Category: ${prod.category} ${prod.colors ? `<span class="prod-card-color" style="background-color:${prod.colors[0]}"></span>${prod.colors.length > 1 ? `+${prod.colors.length}` : ""}` : ""}</span>
                 <div class="card-text">
                     <h4>${prod.name}</h4>
-                    <p>${prod.price.formattedValue}</p>
+                    <p>${prod.price}$</p>
                 </div>
             </div>
         </div>
@@ -82,36 +74,9 @@ const displayProducts = (products) => {
     )
     .join("");
 };
-
-const displayPagination = (pagination) => {
-  const paginationContainer = document.querySelector(".pagination");
-  let pageNumber = pagination.currentPage + 1;
-  let lastPage = pagination.numberOfPages;
-  paginationContainer.innerHTML = `
-        <span onclick="changePage(${pagination.currentPage - 1}, '${ProductsType || ""
-    }')" ${pageNumber === 1 ? "style='display:none'" : ""
-    }><i class="fa-solid fa-angle-left"></i></span>
-        <span>${pageNumber}</span>
-        <span onclick="changePage(${pagination.currentPage + 1}, '${ProductsType || ""
-    }')" ${pageNumber === lastPage ? "style='display:none'" : ""
-    }><i class="fa-solid fa-angle-right"></i></span>
-    `;
-};
-
-const changePage = (pageNumber, type) => {
-  const url = new URL(window.location.href);
-  url.searchParams.set("page", pageNumber);
-  if (type) {
-    url.searchParams.set("type", type);
-  } else {
-    url.searchParams.delete("type");
-  }
-  window.location.href = url.toString();
-};
-
 const displayFilters = (products) => {
   const categoryCounts = products.reduce((counts, prod) => {
-    counts[prod.categoryName] = (counts[prod.categoryName] || 0) + 1;
+    counts[prod.category] = (counts[prod.category] || 0) + 1;
     return counts;
   }, {});
 

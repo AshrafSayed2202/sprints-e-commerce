@@ -1,4 +1,16 @@
 // User Check
+function toggleElementDisplayByAdminStatus() {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (currentUser && currentUser.isAdmin !== undefined) {
+    const element = document.getElementById('dashboard');
+    if (currentUser.isAdmin) {
+      element.style.display = 'inline-flex';
+    } else {
+      element.style.display = 'none';
+    }
+  }
+}
+toggleElementDisplayByAdminStatus();
 function checkUserAndRedirect() {
   const currentUser = localStorage.getItem('currentUser');
   if (!currentUser) {
@@ -11,6 +23,9 @@ function logout() {
   window.location.href = '/login';
 }
 checkUserAndRedirect()
+if (!JSON.parse(localStorage.getItem("products"))) {
+  localStorage.setItem("products", JSON.stringify([]));
+}
 // Cart Count
 const cart = JSON.parse(localStorage.getItem("cart")) || [];
 const cartCount = document.getElementById("cart-count");
