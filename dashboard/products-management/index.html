@@ -401,8 +401,10 @@
                             )
                             .join("")}</p>
                         <p>Sizes: ${product.sizes.join(", ")}</p>
-                        <button onclick="editProduct(${index})"><img src="../../assets/images/edit.png"></button>
-                        <button onclick="deleteProduct(${index})"><img src="../../assets/images/delete.png"></button>
+                        <div class="actions">
+                            <span onclick="editProduct(${index})"><img src="../../assets/images/edit.png"></span>
+                            <span onclick="deleteProduct(${index})"><img src="../../assets/images/delete.png"></span>
+                        </div>
                     `;
                     productList.appendChild(productElement);
                 });
